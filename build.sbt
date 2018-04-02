@@ -14,4 +14,4 @@ libraryDependencies += javaJdbc
 libraryDependencies += "org.xerial" % "sqlite-jdbc" % "3.20.0"
 libraryDependencies += "com.google.code.gson" % "gson" % "2.2.4"
 
-//herokuAppName in Compile := "bugle-pl-srv"
+herokuAppName in Compile := "bugle-pl-srv"
