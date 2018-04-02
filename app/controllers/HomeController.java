@@ -45,6 +45,14 @@ public class HomeController extends Controller {
 		return ok(views.html.index.render());
 	}
 
+	public Result options(String path) {
+		return ok().withHeaders("Access-Control-Allow-Origin", "*")
+				.withHeaders("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+				.withHeaders("Access-Control-Allow-Headers",
+						"Accept, Origin, Content-type, X-Json, X-Prototype-Version, X-Requested-With")
+				.withHeaders("Access-Control-Allow-Credentials", "true").withHeaders("Access-Control-Max-Age", "3600");
+	}
+
 	public Result getOrganizations() {
 		LOG.debug("getOrganizations method called.");
 		List<Users> organizations = databaseService.getOrganizations();
