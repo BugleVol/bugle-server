@@ -12,6 +12,7 @@
 - For opening the sbt console, type sbt from the command prompt.
 - This server is also deployed on Heroku: [Bugle Server](https://bugle-pl-srv.herokuapp.com/)
 
+### API Specification
 
 | Type | mapping | description | Sample Request |
 |---|---|---|---|
