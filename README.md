@@ -5,7 +5,7 @@
 ### Steps to run:
 
 - Install latest version of sbt: [SBT](http://www.scala-sbt.org/download.html)
-- Clone this repository: git clone https://github.com/srivassumit/bugle-play-server
+- Clone this repository: `git clone https://github.com/srivassumit/bugle-play-server`
 - cd to server folder: cd Bugle/server/bugle-play-server
 - Type sbt run to run the application.
 - For stopping the server, Press the Enter key on keyboard.
@@ -39,7 +39,7 @@
   - In case of failure, the `message` will contain more details about the failure. [Sample Failure Response](sample-json/response/failure.json)
   - In case of success, a sample response for each case is specified below:
   
-| Type | Sample Response |
+| Request | Sample Response |
 |---|---|
 | GET /organizations         | [Organizations Response](sample-json/response/organizations.json) |
 | GET /organizations/1       | [Events Response](sample-json/response/events.json) |
