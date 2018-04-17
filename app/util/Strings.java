@@ -35,6 +35,8 @@ public class Strings {
 	public static final String USERS_WEBSITE = "USERS_WEBSITE";
 	public static final String USERS_LOCATION = "USERS_LOCATION";
 	public static final String USERS_TYPE = "USERS_TYPE";
+	public static final String USERS_EMAIL = "USERS_EMAIL";
+	public static final String USERS_UNAME = "USERS_UNAME";
 	
 	public static final String BUGLE_DB_KEY = "bugle-secret-%%123";
 	public static final String INCORRECT_KEY = "Incorrect Key!";

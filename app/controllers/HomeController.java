@@ -396,6 +396,8 @@ public class HomeController extends Controller {
 			return badRequest("Expecting Json data for Editing User.").withHeader(Strings.CORS, Strings.STAR);
 		} else {
 			int uId = json.findPath(Strings.USERS_UID).intValue();
+			String uName = json.findPath(Strings.USERS_UNAME).textValue();
+			String email = json.findPath(Strings.USERS_EMAIL).textValue();
 			String type = json.findPath(Strings.USERS_TYPE).textValue();
 			String mobile = json.findPath(Strings.USERS_MOBILE).textValue();
 			String dob = json.findPath(Strings.USERS_DOB).textValue();
@@ -406,6 +408,8 @@ public class HomeController extends Controller {
 
 			Users user = new Users();
 			user.setuId(uId);
+			user.setuName(uName);
+			user.setEmail(email);
 			user.setType(type);
 			user.setMobile(mobile);
 			user.setPassword(password);
@@ -416,7 +420,7 @@ public class HomeController extends Controller {
 
 			if (databaseService.updateUser(user)) {
 				LOG.debug("Updating user ID: " + uId);
-				return ok(createSuccessResponse(Strings.MESSAGE, "User updated Successfully")).withHeader(Strings.CORS,
+				return ok(createSuccessResponse(Strings.USER, new Gson().toJson(user))).withHeader(Strings.CORS,
 						Strings.STAR);
 			} else {
 				return ok(createErrorResponse("Unable to update user details.")).withHeader(Strings.CORS, Strings.STAR);
