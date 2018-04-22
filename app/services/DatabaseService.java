@@ -599,10 +599,10 @@ public class DatabaseService {
 				executionStatus = updateApplicantStatus(uId, eId, status);
 				if (!executionStatus) {
 					LOG.info("Status Updation failed for uID: " + uId);
-				} else {
-					return true;
 				}
 			}
+			// chan check here if executionStatus was true or false?
+			return true;
 		}
 		return false;
 	}
