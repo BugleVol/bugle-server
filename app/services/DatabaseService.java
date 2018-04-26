@@ -837,19 +837,20 @@ public class DatabaseService {
 	/**
 	 * Method to fetch the message for the given message id.
 	 * 
-	 * @param mId
+	 * @param cId
 	 *            the message ID.
 	 * @return
 	 */
-	public Messages getMessage(Integer mId) {
-		LOG.debug("getting Message: " + mId);
+	public Messages getMessage(int cId, int eId) {
+		LOG.debug("getting Message for Chat: " + cId + ", Event: " + eId);
 		Messages message = null;
-		String selectQuery = "SELECT * from messages where m_id = ?";
+		String selectQuery = "SELECT * from messages where c_id = ? and e_id = ?";
 		Connection con = null;
 		try {
 			con = db.getConnection();
 			try (PreparedStatement selectStatement = con.prepareStatement(selectQuery)) {
-				selectStatement.setInt(1, mId);
+				selectStatement.setInt(1, cId);
+				selectStatement.setInt(2, eId);
 				ResultSet rs = selectStatement.executeQuery();
 				while (rs.next()) {
 					message = new Messages();
@@ -889,7 +890,7 @@ public class DatabaseService {
 	 */
 	public boolean saveMessage(Messages message) {
 		LOG.debug("Inserting message");
-		String insertStatement = "INSERT INTO messages (c_id, e_id, msg, status) VALUES(?,?,?,?)";
+		String insertStatement = "INSERT INTO messages (c_id, e_id, msg, status) VALUES (?,?,?,?) ON CONFLICT (c_id, e_id) DO UPDATE SET msg = excluded.msg, status = excluded.status";
 		Connection con = null;
 		try {
 			con = db.getConnection();
