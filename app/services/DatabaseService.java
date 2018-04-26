@@ -49,7 +49,7 @@ public class DatabaseService {
 		try {
 			con = db.getConnection();
 			// Initialize database here.
-			String createUsers = "CREATE TABLE IF NOT EXISTS users (u_id SERIAL PRIMARY KEY, u_name text NOT NULL, email text NOT NULL, mobile text, dob text, password text NOT NULL, type text NOT NULL, description text, location text, website text)";
+			String createUsers = "CREATE TABLE IF NOT EXISTS users (u_id SERIAL PRIMARY KEY, u_name text NOT NULL, email text NOT NULL, mobile text, dob text, password text NOT NULL, type text NOT NULL, description text, location text, website text, gprofid text)";
 			String createEvents = "CREATE TABLE IF NOT EXISTS events (e_id SERIAL PRIMARY KEY, e_name text NOT NULL, location text, datetime text, description text, members text, u_id integer, status text)";
 			String createApplicants = "CREATE TABLE IF NOT EXISTS applicants (a_id SERIAL PRIMARY KEY, u_id integer NOT NULL, e_id integer NOT NULL, status text)";
 			String createChats = "CREATE TABLE IF NOT EXISTS chats (c_id SERIAL PRIMARY KEY, c_name text NOT NULL, u_id integer, e_id integer, status text)";
@@ -977,7 +977,7 @@ public class DatabaseService {
 				selectStatement.setInt(2, eId);
 				ResultSet rs = selectStatement.executeQuery();
 				if (rs.next()) {
-					String status =rs.getString("status");
+					String status = rs.getString("status");
 					LOG.debug("found application, status is: " + status);
 					return status;
 				} else {
@@ -1031,6 +1031,98 @@ public class DatabaseService {
 				}
 			}
 		}
+	}
+
+	/**
+	 * This method saves the Google Profile of a user to the database and uses the
+	 * google profile id as the password.
+	 * 
+	 * @param name
+	 *            the name
+	 * @param email
+	 *            the email
+	 * @param gprofid
+	 *            the google Profile ID.
+	 * @return
+	 */
+	public boolean saveGProfile(String name, String email, String gprofid, String type) {
+		LOG.debug("Inserting Google Profile");
+		String insertStatement = "INSERT INTO users (u_name, email, password, type, gprofid) VALUES(?,?,?,?,?)";
+		Connection con = null;
+		try {
+			con = db.getConnection();
+			PreparedStatement pstmt = con.prepareStatement(insertStatement);
+			pstmt.setString(1, name);
+			pstmt.setString(2, email);
+			pstmt.setString(3, gprofid);
+			pstmt.setString(4, type);
+			pstmt.setString(5, gprofid);
+			return pstmt.executeUpdate() > 0;
+		} catch (Exception e) {
+			LOG.error("Error while inserting Google Profile.");
+			e.printStackTrace();
+			return false;
+		} finally {
+			if (con != null) {
+				try {
+					con.close();
+				} catch (SQLException e) {
+					LOG.error("Error while closing the connection from insert Google Profile method.");
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	/**
+	 * This method fetches the Google user from the database.
+	 * @param pId
+	 * @return
+	 */
+	public Users getGoogleUser(String pId) {
+		LOG.debug("getting Google User: " + pId);
+		Users user = null;
+		String selectQuery = "SELECT * from users where gprofid = ?";
+		Connection con = null;
+		try {
+			con = db.getConnection();
+			try (PreparedStatement selectStatement = con.prepareStatement(selectQuery)) {
+				selectStatement.setString(1, pId);
+				ResultSet rs = selectStatement.executeQuery();
+				while (rs.next()) {
+					user = new Users();
+					user.setuId(rs.getInt("u_id"));
+					user.setuName(rs.getString("u_name"));
+					user.setEmail(rs.getString("email"));
+					user.setMobile(rs.getString("mobile"));
+					user.setDob(rs.getString("dob"));
+					user.setPassword(rs.getString("password"));
+					user.setType(rs.getString("type"));
+					user.setDescription(rs.getString("description"));
+					user.setWebsite(rs.getString("website"));
+					user.setGprofid(rs.getString("gprofid"));
+				}
+			} catch (Exception e) {
+				LOG.error("Error while executing query for Get Google User.");
+				e.printStackTrace();
+				return user;
+			}
+		} catch (Exception e) {
+			LOG.error("Error while getting DB connection for Get Google User.");
+			e.printStackTrace();
+			return user;
+		} finally {
+			if (con != null) {
+				try {
+					con.close();
+				} catch (SQLException e) {
+					LOG.error("Error while closing the connection from Get Google User method.");
+					e.printStackTrace();
+				}
+			}
+		}
+		LOG.debug("Fetched user.");
+		return user;
 	}
 
 }
