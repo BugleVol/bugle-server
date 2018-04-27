@@ -13,12 +13,12 @@ public class Events {
 	private String members;
 	private int uId;
 	private String status;
-	private int mId;
-	
+
 	public Events() {
 	}
 
-	public Events(String eName, String location, String datetime, String description, String members, int uId, String status) {
+	public Events(String eName, String location, String datetime, String description, String members, int uId,
+			String status) {
 		this.eName = eName;
 		this.location = location;
 		this.datetime = datetime;
@@ -27,6 +27,7 @@ public class Events {
 		this.uId = uId;
 		this.status = status;
 	}
+
 	/**
 	 * @return the eId
 	 */
@@ -147,27 +148,14 @@ public class Events {
 		this.status = status;
 	}
 
-	/**
-	 * @return the mId
-	 */
-	public int getmId() {
-		return mId;
-	}
-
-	/**
-	 * @param mId the mId to set
-	 */
-	public void setmId(int mId) {
-		this.mId = mId;
-	}
-
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return "Events [eId=" + eId + ", eName=" + eName + ", location=" + location + ", datetime=" + datetime
-				+ ", description=" + description + ", members=" + members + ", uId=" + uId + ", status=" + status
-				+ ", mId=" + mId + "]";
+				+ ", description=" + description + ", members=" + members + ", uId=" + uId + ", status=" + status + "]";
 	}
 }

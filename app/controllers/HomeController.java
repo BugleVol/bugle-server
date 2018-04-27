@@ -517,7 +517,6 @@ public class HomeController extends Controller {
 			String msg = json.findPath("message").textValue();
 
 			Messages message = new Messages();
-			message.setcId(cId);
 			message.seteId(eId);
 			message.setMsg(msg);
 			message.setStatus(Strings.STATUS_ACTIVE);
@@ -527,7 +526,7 @@ public class HomeController extends Controller {
 			if (databaseService.saveMessage(message)) {
 				LOG.debug("Saved message for Chat: " + cId);
 				// doing another DB call to read the message ID for this chatID and eventID.
-				message = databaseService.readDBMessage(cId, eId);
+				message = databaseService.readDBMessage(eId);
 				//this newly fetched message would have message ID as well.
 				return ok(createSuccessResponse(Strings.MESSAGE, new Gson().toJson(message))).withHeader(Strings.CORS,
 						Strings.STAR);
