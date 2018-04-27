@@ -512,8 +512,8 @@ public class HomeController extends Controller {
 		if (json == null) {
 			return badRequest("Expecting Json data for saving Message.").withHeader(Strings.CORS, Strings.STAR);
 		} else {
-			int cId = json.findPath("cId").intValue();
-			int eId = json.findPath("eId").intValue();
+			int cId = Integer.valueOf(json.findPath("cId").textValue());
+			int eId = Integer.valueOf(json.findPath("eId").textValue());
 			String msg = json.findPath("message").textValue();
 
 			Messages message = new Messages();
@@ -522,7 +522,7 @@ public class HomeController extends Controller {
 			message.setMsg(msg);
 			message.setStatus(Strings.STATUS_ACTIVE);
 
-			LOG.debug("Saving message for Chat: " + cId);
+			LOG.debug("Saving message for Chat: " + cId + ", and Event: " + eId);
 
 			if (databaseService.saveMessage(message)) {
 				LOG.debug("Saved message for Chat: " + cId);

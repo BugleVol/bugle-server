@@ -838,7 +838,9 @@ public class DatabaseService {
 	 * Method to fetch the message for the given message id.
 	 * 
 	 * @param cId
-	 *            the message ID.
+	 *            the chat ID.
+	 * @param eId
+	 *            the event ID.
 	 * @return
 	 */
 	public Messages getMessage(int cId, int eId) {
