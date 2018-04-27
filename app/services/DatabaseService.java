@@ -54,7 +54,7 @@ public class DatabaseService {
 			String createApplicants = "CREATE TABLE IF NOT EXISTS applicants (a_id SERIAL PRIMARY KEY, u_id integer NOT NULL, e_id integer NOT NULL, status text)";
 			String createChats = "CREATE TABLE IF NOT EXISTS chats (c_id SERIAL PRIMARY KEY, c_name text NOT NULL, u_id integer, e_id integer, status text, m_id integer)";
 			String createMessages = "CREATE TABLE IF NOT EXISTS messages (m_id SERIAL PRIMARY KEY, e_id integer, msg text, status text, unique(e_id))";
-			String createFunction = "CREATE OR REPLACE FUNCTION update_mId() RETURNS trigger AS ' BEGIN   IF NEW.m_id IS NULL THEN    NEW.m_id := (select m_id from chats where e_id = NEW.e_id and m_id IS NOT NULL);   END IF;   RETURN NEW; END' LANGUAGE 'plpgsql'";
+			String createFunction = "CREATE OR REPLACE FUNCTION update_mId() RETURNS trigger AS ' BEGIN   IF NEW.m_id IS NULL THEN    NEW.m_id := (select m_id from chats where e_id = NEW.e_id and m_id IS NOT NULL LIMIT 1);   END IF;   RETURN NEW; END' LANGUAGE 'plpgsql'";
 			String dropTrigger = "DROP TRIGGER IF EXISTS update_chat_mId on \"chats\"";
 			String createTrigger = "CREATE TRIGGER update_chat_mId before insert on chats for each row execute procedure update_mId()";
 			try (Statement stmt = con.createStatement()) {
