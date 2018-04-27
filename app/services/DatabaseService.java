@@ -1163,7 +1163,7 @@ public class DatabaseService {
 	 */
 	public boolean saveGProfile(String name, String email, String gprofid, String type) {
 		LOG.debug("Inserting Google Profile");
-		String insertStatement = "INSERT INTO users (u_name, email, password, type, gprofid, password) VALUES(?,?,?,?,?,?)";
+		String insertStatement = "INSERT INTO users (u_name, email, password, type, gprofid) VALUES(?,?,?,?,?)";
 		Connection con = null;
 		try {
 			con = db.getConnection();
@@ -1173,7 +1173,6 @@ public class DatabaseService {
 			pstmt.setString(3, gprofid);
 			pstmt.setString(4, type);
 			pstmt.setString(5, gprofid);
-			pstmt.setString(6, gprofid);
 			return pstmt.executeUpdate() > 0;
 		} catch (Exception e) {
 			LOG.error("Error while inserting Google Profile.");
