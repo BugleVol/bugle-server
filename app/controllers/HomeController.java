@@ -494,9 +494,9 @@ public class HomeController extends Controller {
 	 *            the message ID
 	 * @return
 	 */
-	public Result getMessage(String cId, String eId) {
+	public Result getMessage(String mId) {
 		LOG.debug("getMessage method called.");
-		Messages message = databaseService.getMessage(Integer.valueOf(cId), Integer.valueOf(eId));
+		Messages message = databaseService.getMessage(Integer.valueOf(mId));
 		return ok(createSuccessResponse(Strings.MESSAGE, new Gson().toJson(message))).withHeader(Strings.CORS,
 				Strings.STAR);
 	}
@@ -526,8 +526,9 @@ public class HomeController extends Controller {
 
 			if (databaseService.saveMessage(message)) {
 				LOG.debug("Saved message for Chat: " + cId);
-				// TODO: this message will not have message ID. If that is needed then we need
-				// to do another DB call to read the message ID for this chatID and eventID.
+				// doing another DB call to read the message ID for this chatID and eventID.
+				message = databaseService.readDBMessage(cId, eId);
+				//this newly fetched message would have message ID as well.
 				return ok(createSuccessResponse(Strings.MESSAGE, new Gson().toJson(message))).withHeader(Strings.CORS,
 						Strings.STAR);
 			} else {

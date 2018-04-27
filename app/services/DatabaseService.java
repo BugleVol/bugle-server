@@ -699,7 +699,8 @@ public class DatabaseService {
 			try (PreparedStatement pstmt = con.prepareStatement(updateStatement)) {
 				pstmt.setInt(1, uId);
 				pstmt.setInt(2, eId);
-				//status can be = 0 too as the user might not have been added in the chat initially.
+				// status can be = 0 too as the user might not have been added in the chat
+				// initially.
 				return pstmt.executeUpdate() >= 0;
 			} catch (Exception e) {
 				LOG.error("Error while deleting from chats: " + updateStatement);
@@ -843,16 +844,15 @@ public class DatabaseService {
 	 *            the event ID.
 	 * @return
 	 */
-	public Messages getMessage(int cId, int eId) {
-		LOG.debug("getting Message for Chat: " + cId + ", Event: " + eId);
+	public Messages getMessage(int mId) {
+		LOG.debug("getting Message " + mId);
 		Messages message = null;
-		String selectQuery = "SELECT * from messages where c_id = ? and e_id = ?";
+		String selectQuery = "SELECT * from messages where m_id = ?";
 		Connection con = null;
 		try {
 			con = db.getConnection();
 			try (PreparedStatement selectStatement = con.prepareStatement(selectQuery)) {
-				selectStatement.setInt(1, cId);
-				selectStatement.setInt(2, eId);
+				selectStatement.setInt(1, mId);
 				ResultSet rs = selectStatement.executeQuery();
 				while (rs.next()) {
 					message = new Messages();
@@ -916,6 +916,56 @@ public class DatabaseService {
 				}
 			}
 		}
+	}
+
+	/**
+	 * This method fetches the message that was just inserted via POST to fetch the
+	 * message ID for which it was stored.
+	 * 
+	 * @param cId the chat ID
+	 * @param eId the event ID
+	 * @return
+	 */
+	public Messages readDBMessage(int cId, int eId) {
+		LOG.debug("getting DB Message for chatID: " + cId + ", EventID: " + eId);
+		Messages message = null;
+		String selectQuery = "SELECT * from messages where c_id = ? and e_id = ?";
+		Connection con = null;
+		try {
+			con = db.getConnection();
+			try (PreparedStatement selectStatement = con.prepareStatement(selectQuery)) {
+				selectStatement.setInt(1, cId);
+				selectStatement.setInt(1, eId);
+				ResultSet rs = selectStatement.executeQuery();
+				while (rs.next()) {
+					message = new Messages();
+					message.setmId(rs.getInt("m_id"));
+					message.setcId(rs.getInt("c_id"));
+					message.seteId(rs.getInt("e_id"));
+					message.setMsg(rs.getString("msg"));
+					message.setStatus(rs.getString("status"));
+				}
+			} catch (Exception e) {
+				LOG.error("Error while executing query for Read DB Message.");
+				e.printStackTrace();
+				return message;
+			}
+		} catch (Exception e) {
+			LOG.error("Error while getting DB connection for Read DB Message.");
+			e.printStackTrace();
+			return message;
+		} finally {
+			if (con != null) {
+				try {
+					con.close();
+				} catch (SQLException e) {
+					LOG.error("Error while closing the connection from Read DB Message method.");
+					e.printStackTrace();
+				}
+			}
+		}
+		LOG.debug("Fetched DB message.");
+		return message;
 	}
 
 	/**
@@ -1080,6 +1130,7 @@ public class DatabaseService {
 
 	/**
 	 * This method fetches the Google user from the database.
+	 * 
 	 * @param pId
 	 * @return
 	 */
