@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS events (
 	description text,
 	members text,
 	u_id integer, //userId of the organizer who created this event. 
-	status text,
+	status text
 );
 
 CREATE TABLE IF NOT EXISTS applicants (
