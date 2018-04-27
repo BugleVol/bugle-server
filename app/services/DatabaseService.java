@@ -1173,7 +1173,7 @@ public class DatabaseService {
 			pstmt.setString(3, gprofid);
 			pstmt.setString(4, type);
 			pstmt.setString(5, gprofid);
-			pstmt.setString(5, gprofid);
+			pstmt.setString(6, gprofid);
 			return pstmt.executeUpdate() > 0;
 		} catch (Exception e) {
 			LOG.error("Error while inserting Google Profile.");
