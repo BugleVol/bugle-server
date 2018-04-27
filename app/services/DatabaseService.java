@@ -872,6 +872,7 @@ public class DatabaseService {
 					chat.setcName(rs.getString("c_name"));
 					chat.setuId(rs.getInt("u_id"));
 					chat.seteId(rs.getInt("e_id"));
+					chat.setmId(rs.getInt("m_id"));
 					chat.setStatus(rs.getString("status"));
 					chats.add(chat);
 				}
