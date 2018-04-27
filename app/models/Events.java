@@ -13,6 +13,7 @@ public class Events {
 	private String members;
 	private int uId;
 	private String status;
+	private int mId;
 	
 	public Events() {
 	}
@@ -146,12 +147,27 @@ public class Events {
 		this.status = status;
 	}
 
+	/**
+	 * @return the mId
+	 */
+	public int getmId() {
+		return mId;
+	}
+
+	/**
+	 * @param mId the mId to set
+	 */
+	public void setmId(int mId) {
+		this.mId = mId;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return "Events [eId=" + eId + ", eName=" + eName + ", location=" + location + ", datetime=" + datetime
-				+ ", description=" + description + ", members=" + members + ", uId=" + uId + ", status=" + status + "]";
+				+ ", description=" + description + ", members=" + members + ", uId=" + uId + ", status=" + status
+				+ ", mId=" + mId + "]";
 	}
 }

@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS events (
 	description text,
 	members text,
 	u_id integer, //userId of the organizer who created this event. 
-	status text
+	m_id integer, //message Id of the initial message of this event's chat.
+	status text,
 );
 
 CREATE TABLE IF NOT EXISTS applicants (

@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -50,7 +52,7 @@ public class DatabaseService {
 			con = db.getConnection();
 			// Initialize database here.
 			String createUsers = "CREATE TABLE IF NOT EXISTS users (u_id SERIAL PRIMARY KEY, u_name text NOT NULL, email text NOT NULL, mobile text, dob text, password text NOT NULL, type text NOT NULL, description text, location text, website text, gprofid text)";
-			String createEvents = "CREATE TABLE IF NOT EXISTS events (e_id SERIAL PRIMARY KEY, e_name text NOT NULL, location text, datetime text, description text, members text, u_id integer, status text)";
+			String createEvents = "CREATE TABLE IF NOT EXISTS events (e_id SERIAL PRIMARY KEY, e_name text NOT NULL, location text, datetime text, description text, members text, u_id integer, status text, m_id integer)";
 			String createApplicants = "CREATE TABLE IF NOT EXISTS applicants (a_id SERIAL PRIMARY KEY, u_id integer NOT NULL, e_id integer NOT NULL, status text)";
 			String createChats = "CREATE TABLE IF NOT EXISTS chats (c_id SERIAL PRIMARY KEY, c_name text NOT NULL, u_id integer, e_id integer, status text)";
 			String createMessages = "CREATE TABLE IF NOT EXISTS messages (m_id SERIAL PRIMARY KEY, c_id integer, e_id integer, msg text, status text, unique(c_id, e_id))";
@@ -168,20 +170,53 @@ public class DatabaseService {
 		// chats - approved volunteers
 		insertStatements.add(
 				"INSERT INTO chats (c_name, u_id, e_id, status) values ((('Event 1')::text || ': Chat'), (SELECT u_id from applicants where e_id in (SELECT e_id from events where e_name='Event 1' LIMIT 1) order by u_id LIMIT 1), (SELECT e_id from events where e_name='Event 1' LIMIT 1), 'active')");
+		
+		Map<String, String> insertMessages = new LinkedHashMap<String, String>();
+		// messages - initial messages
+		insertMessages.put("(SELECT e_id from events where e_name='Event 1' LIMIT 1)", "INSERT INTO messages (c_id, e_id, msg, status) values ((SELECT c_id from chats where c_name='Event 1: Chat' LIMIT 1), (SELECT e_id from events where e_name='Event 1' LIMIT 1), '<p>Welcome to Event 1: Chat<p><br>', 'active') RETURNING m_id");
+		insertMessages.put("(SELECT e_id from events where e_name='Event 28' LIMIT 1)", "INSERT INTO messages (c_id, e_id, msg, status) values ((SELECT c_id from chats where c_name='Event 28: Chat' LIMIT 1), (SELECT e_id from events where e_name='Event 28' LIMIT 1), '<p>Welcome to Event 28: Chat<p><br>', 'active') RETURNING m_id");
+		insertMessages.put("(SELECT e_id from events where e_name='Event 123' LIMIT 1)", "INSERT INTO messages (c_id, e_id, msg, status) values ((SELECT c_id from chats where c_name='Event 123: Chat' LIMIT 1), (SELECT e_id from events where e_name='Event 123' LIMIT 1), '<p>Welcome to Event 123: Chat<p><br>', 'active') RETURNING m_id");
+		insertMessages.put("(SELECT e_id from events where e_name='Event 234' LIMIT 1)", "INSERT INTO messages (c_id, e_id, msg, status) values ((SELECT c_id from chats where c_name='Event 234: Chat' LIMIT 1), (SELECT e_id from events where e_name='Event 234' LIMIT 1), '<p>Welcome to Event 234: Chat<p><br>', 'active') RETURNING m_id");
+		insertMessages.put("(SELECT e_id from events where e_name='Event 23' LIMIT 1)", "INSERT INTO messages (c_id, e_id, msg, status) values ((SELECT c_id from chats where c_name='Event 23: Chat' LIMIT 1), (SELECT e_id from events where e_name='Event 23' LIMIT 1), '<p>Welcome to Event 23: Chat<p><br>', 'active') RETURNING m_id");
+		insertMessages.put("(SELECT e_id from events where e_name='Event 47' LIMIT 1)", "INSERT INTO messages (c_id, e_id, msg, status) values ((SELECT c_id from chats where c_name='Event 47: Chat' LIMIT 1), (SELECT e_id from events where e_name='Event 47' LIMIT 1), '<p>Welcome to Event 47: Chat<p><br>', 'active') RETURNING m_id");
+		insertMessages.put("(SELECT e_id from events where e_name='Event 74' LIMIT 1)", "INSERT INTO messages (c_id, e_id, msg, status) values ((SELECT c_id from chats where c_name='Event 74: Chat' LIMIT 1), (SELECT e_id from events where e_name='Event 74' LIMIT 1), '<p>Welcome to Event 74: Chat<p><br>', 'active') RETURNING m_id");
 		Connection con = null;
 		try {
 			con = db.getConnection();
 			boolean status = true;
+			LOG.debug("Inserting records...");
 			for (String insertStatement : insertStatements) {
 				try (PreparedStatement pstmt = con.prepareStatement(insertStatement)) {
 					int recordsInserted = pstmt.executeUpdate();
 					status = recordsInserted > 0;
 				} catch (Exception e) {
-					LOG.error("Error while generating mock data, for Insert statement: " + insertStatement);
+					LOG.error("Error while inserting records, for Insert statement: " + insertStatement);
 					e.printStackTrace();
 				}
 			}
-			LOG.debug("Mock data generated...");
+			LOG.debug("Inserted Records... Now inserting messages and updating events...");
+			String updateStatement = "";
+			for (Map.Entry<String, String> entry : insertMessages.entrySet()) {
+				try (PreparedStatement pstmt = con.prepareStatement(entry.getValue())) {
+					pstmt.execute();
+					ResultSet rs = pstmt.getResultSet();
+					int mId = 0;
+					if (rs.next()) {
+						mId = rs.getInt(1);
+					}
+					status = mId > 0;
+					if (status) {
+						//if the message was inserted... update event
+						updateStatement = "UPDATE events set m_id = " + mId + " WHERE e_id = " + entry.getKey();
+						PreparedStatement psUpdate = con.prepareStatement(updateStatement);
+						status = psUpdate.executeUpdate() > 0;
+					}
+				} catch (Exception e) {
+					LOG.error("Error while inserting messages and updating events data, for Insert statement: " + entry.getValue());
+					e.printStackTrace();
+				}
+			}
+			LOG.debug("Inserted Messages and update events.\nMock data generation complete!");
 			return status;
 		} catch (Exception e) {
 			LOG.error("Error while getting DB connection for generating mock data.");
@@ -370,26 +405,86 @@ public class DatabaseService {
 
 	public boolean insertEvent(Events event) {
 		LOG.debug("Inserting Event and creating its correspondign chat group");
-		String insertStatement = "INSERT INTO events (e_name, location, datetime, description, members, u_id, status) VALUES(?,?,?,?,?,?,?)";
+		String insertEvent = "INSERT INTO events (e_name, location, datetime, description, members, u_id, status) VALUES(?,?,?,?,?,?,?) RETURNING e_id";
 		// when an event is created, its chat group should also be created.
-		String insertChat = "INSERT INTO chats (c_name, u_id, e_id, status) VALUES(?,?,(SELECT e_id from events where e_name = ? order by e_id LIMIT 1),?)";
+		String insertChat = "INSERT INTO chats (c_name, u_id, e_id, status) VALUES(?,?,?,?) RETURNING c_id";
+		// when an event is created, its initial message should also be created and the
+		// ID should be stored in event table.
+		// there shouldn't be a conflict here as this is the first time the message for
+		// this cId, eId is being inserted.
+		String insertMessage = "INSERT INTO messages (c_id, e_id, msg, status) VALUES(?,?,(SELECT e_id from events where e_name = ? order by e_id LIMIT 1),?) RETURNING m_id";
+		// After inserting this, update events table and set this message ID
+		String updateEvents = "UPDATE events set m_id = ? where e_id = ?";
 		Connection con = null;
 		try {
 			con = db.getConnection();
-			PreparedStatement pstmt = con.prepareStatement(insertStatement);
-			pstmt.setString(1, event.geteName());
-			pstmt.setString(2, event.getLocation());
-			pstmt.setString(3, event.getDatetime());
-			pstmt.setString(4, event.getDescription());
-			pstmt.setString(5, event.getMembers());
-			pstmt.setInt(6, event.getuId());
-			pstmt.setString(7, event.getStatus());
-			PreparedStatement pstmt2 = con.prepareStatement(insertChat);
-			pstmt2.setString(1, event.geteName().concat(": Chat"));
-			pstmt2.setInt(2, event.getuId());
-			pstmt2.setString(3, event.geteName());
-			pstmt2.setString(4, Strings.STATUS_ACTIVE);
-			return pstmt.executeUpdate() > 0 && pstmt2.executeUpdate() > 0;
+			LOG.debug("Inserting event...");
+			PreparedStatement psEvent = con.prepareStatement(insertEvent);
+			psEvent.setString(1, event.geteName());
+			psEvent.setString(2, event.getLocation());
+			psEvent.setString(3, event.getDatetime());
+			psEvent.setString(4, event.getDescription());
+			psEvent.setString(5, event.getMembers());
+			psEvent.setInt(6, event.getuId());
+			psEvent.setString(7, event.getStatus());
+			int eId = 0;
+			psEvent.execute();
+			ResultSet rs = psEvent.getResultSet();
+			if (rs.next()) {
+				eId = rs.getInt(1);
+			}
+			if (eId > 0) {
+				LOG.debug("Event inserted! Event ID is: " + eId);
+				LOG.debug("Inserting chat...");
+				PreparedStatement psChat = con.prepareStatement(insertChat);
+				psChat.setString(1, event.geteName().concat(": Chat"));
+				psChat.setInt(2, event.getuId());
+				psChat.setInt(3, eId);
+				psChat.setString(4, Strings.STATUS_ACTIVE);
+				int cId = 0;
+				psChat.execute();
+				ResultSet rs2 = psChat.getResultSet();
+				if (rs2.next()) {
+					cId = rs2.getInt(1);
+				}
+				if (cId > 0) {
+					LOG.debug("Chat inserted! Chat ID is: " + cId);
+					LOG.debug("Inserting message...");
+					PreparedStatement psMessage = con.prepareStatement(insertMessage);
+					psMessage.setInt(1, cId);
+					psMessage.setInt(2, eId);
+					psMessage.setString(3, "");
+					psMessage.setString(4, Strings.STATUS_ACTIVE);
+					int mId = 0;
+					psMessage.execute();
+					ResultSet rs3 = psMessage.getResultSet();
+					if (rs3.next()) {
+						mId = rs3.getInt(1);
+					}
+					if (mId > 0) {
+						LOG.debug("Message inserted! Message ID is: " + mId);
+						LOG.debug("Updating Event #" + eId + " with the generated message ID: " + mId);
+						PreparedStatement psUpdate = con.prepareStatement(updateEvents);
+						psUpdate.setInt(1, mId);
+						psUpdate.setInt(2, eId);
+						return psUpdate.executeUpdate() > 0;
+					} else {
+						// There is a chance of having corrupted event and chat inserted here if chat could not
+						// be inserted after event insertion. Should delete the inserted event and chat here?
+						LOG.debug("Could not Insert Message!! aborting... mID:" + mId);
+						return false;
+					}
+				} else {
+					// There is a chance of having corrupted event inserted here if chat could not
+					// be inserted after event insertion. Should delete the inserted event here?
+					LOG.debug("Could not Insert Chat!! aborting... cID:" + cId);
+					return false;
+				}
+			} else {
+				LOG.debug("Could not Insert Event!! aborting... eID:" + eId);
+				return false;
+			}
+
 		} catch (Exception e) {
 			LOG.error("Error while inserting event and corresponding chat group.");
 			e.printStackTrace();
@@ -432,6 +527,7 @@ public class DatabaseService {
 					event.setMembers(rs.getString("members"));
 					event.setuId(rs.getInt("u_id"));
 					event.setStatus(rs.getString("status"));
+					event.setmId(rs.getInt("m_id"));
 					events.add(event);
 				}
 			} catch (Exception e) {
@@ -537,6 +633,7 @@ public class DatabaseService {
 					event.setMembers(rs.getString("members"));
 					event.setuId(rs.getInt("u_id"));
 					event.setStatus(rs.getString("status"));
+					event.setmId(rs.getInt("m_id"));
 					events.add(event);
 				}
 			} catch (Exception e) {
@@ -922,8 +1019,10 @@ public class DatabaseService {
 	 * This method fetches the message that was just inserted via POST to fetch the
 	 * message ID for which it was stored.
 	 * 
-	 * @param cId the chat ID
-	 * @param eId the event ID
+	 * @param cId
+	 *            the chat ID
+	 * @param eId
+	 *            the event ID
 	 * @return
 	 */
 	public Messages readDBMessage(int cId, int eId) {
@@ -935,7 +1034,7 @@ public class DatabaseService {
 			con = db.getConnection();
 			try (PreparedStatement selectStatement = con.prepareStatement(selectQuery)) {
 				selectStatement.setInt(1, cId);
-				selectStatement.setInt(1, eId);
+				selectStatement.setInt(2, eId);
 				ResultSet rs = selectStatement.executeQuery();
 				while (rs.next()) {
 					message = new Messages();
